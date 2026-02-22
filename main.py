@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from typing import Any
 
 import httpx
 from dotenv import load_dotenv
@@ -16,12 +17,63 @@ YANDEX_CLOUD_MODEL = os.getenv("YANDEX_CLOUD_MODEL", "yandexgpt/latest")
 
 TOKENIZE_URL = "https://ai.api.cloud.yandex.net/foundationModels/v1/tokenize"
 
+# Модели, для которых токенизация выполняется локально (Hugging Face), т.к. Yandex API не отдаёт токенизатор
+LOCAL_TOKENIZER_MODELS = {"qwen3-235b-a22b-fp8"}
+LOCAL_TOKENIZER_HF_MODEL: dict[str, str] = {
+    "qwen3-235b-a22b-fp8": "Qwen/Qwen3-0.6B",
+}
+
 AVAILABLE_MODELS = [
     {"id": "yandexgpt/latest", "name": "YandexGPT Pro 5", "context": "32K", "price_per_1000": 1.20},
     {"id": "yandexgpt/rc", "name": "YandexGPT Pro 5.1", "context": "32K", "price_per_1000": 0.80},
     {"id": "yandexgpt-lite", "name": "YandexGPT Lite 5", "context": "32K", "price_per_1000": 0.20},
     {"id": "aliceai-llm", "name": "Alice AI LLM", "context": "32K", "price_per_1000": 0.50},
+    {"id": "qwen3-235b-a22b-fp8", "name": "Qwen3 235B A22B (FP8)", "context": "32K", "price_per_1000": 0.50},
 ]
+
+# Кэш токенизаторов Hugging Face (model_id -> tokenizer)
+_hf_tokenizer_cache: dict[str, Any] = {}
+
+
+def _get_local_tokenizer(model_id: str):
+    """Ленивая загрузка и кэширование токенизатора для модели с локальной токенизацией."""
+    if model_id in _hf_tokenizer_cache:
+        return _hf_tokenizer_cache[model_id]
+    hf_model_id = LOCAL_TOKENIZER_HF_MODEL.get(model_id)
+    if not hf_model_id:
+        raise ValueError(f"Unknown local tokenizer model: {model_id}")
+    try:
+        from transformers import AutoTokenizer
+
+        tokenizer = AutoTokenizer.from_pretrained(hf_model_id)
+    except Exception as e:
+        raise HTTPException(
+            status_code=503,
+            detail=f"Не удалось загрузить токенизатор ({hf_model_id}): {e}",
+        ) from e
+    _hf_tokenizer_cache[model_id] = tokenizer
+    return tokenizer
+
+
+def _tokenize_local(model_id: str, text: str) -> tuple[list["TokenInfo"], str]:
+    """Токенизация текста локальным (Hugging Face) токенизатором. Возвращает (tokens, model_version)."""
+    tokenizer = _get_local_tokenizer(model_id)
+    try:
+        ids = tokenizer.encode(text, add_special_tokens=False)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Ошибка токенизации: {e}") from e
+    special_ids = set(tokenizer.all_special_ids)
+    # decode([id]) даёт корректный Unicode для одного токена (convert_ids_to_tokens даёт mojibake для кириллицы)
+    tokens = [
+        TokenInfo(
+            id=tid,
+            text=tokenizer.decode([tid]),
+            special=tid in special_ids,
+        )
+        for tid in ids
+    ]
+    return tokens, "local (Qwen3)"
+
 
 app = FastAPI(title="YC Tokenizer")
 
@@ -63,6 +115,14 @@ async def get_models():
 async def tokenize(req: TokenizeRequest):
     if not req.text.strip():
         raise HTTPException(status_code=400, detail="Text must not be empty")
+
+    if req.model in LOCAL_TOKENIZER_MODELS:
+        tokens, model_version = _tokenize_local(req.model, req.text)
+        return TokenizeResponse(
+            token_count=len(tokens),
+            tokens=tokens,
+            model_version=model_version,
+        )
 
     model_uri = f"gpt://{YANDEX_FOLDER_ID}/{req.model}"
 

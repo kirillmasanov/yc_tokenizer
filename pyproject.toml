@@ -6,6 +6,8 @@ requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.129.2",
     "httpx>=0.28.1",
+    "huggingface-hub",
     "python-dotenv>=1.2.1",
+    "transformers",
     "uvicorn[standard]>=0.41.0",
 ]
