@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YC Tokenizer</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --blue: #0077FF;
+            --blue-hover: #005FD6;
+            --blue-light: #E3F2FD;
+            --green-light: #E8F5E9;
+            --yellow-banner: #FFF8E1;
+            --gray-bg: #F5F5F5;
+            --gray-border: #E0E0E0;
+            --gray-text: #6B7280;
+            --dark: #1A1A1A;
+            --card-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+            --radius: 12px;
+            --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--gray-bg);
+            color: var(--dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            background: #fff;
+            border-bottom: 1px solid var(--gray-border);
+            padding: 0 24px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--dark);
+        }
+
+        .logo-icon {
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #0077FF 0%, #5282FF 100%);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .logo-text {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .logo-text span {
+            color: var(--gray-text);
+            font-weight: 400;
+            margin-left: 4px;
+        }
+
+        main {
+            flex: 1;
+            padding: 32px 24px;
+        }
+
+        .panels {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 900px) {
+            .panels { grid-template-columns: 1fr; }
+        }
+
+        .card {
+            background: #fff;
+            border-radius: var(--radius);
+            box-shadow: var(--card-shadow);
+            padding: 24px;
+            height: fit-content;
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: var(--dark);
+        }
+
+        .card-title .icon-doc {
+            color: var(--gray-text);
+        }
+
+        .card-title .icon-doc.result {
+            color: #22C55E;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gray-text);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .select-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1.5px solid var(--gray-border);
+            border-radius: 8px;
+            padding: 0 12px;
+            background: #fff;
+            min-height: 44px;
+        }
+
+        .select-wrap:focus-within {
+            border-color: var(--blue);
+            outline: none;
+        }
+
+        .select-wrap select {
+            flex: 1;
+            border: none;
+            background: none;
+            font-size: 15px;
+            font-family: var(--font);
+            color: var(--dark);
+            cursor: pointer;
+            padding: 10px 0;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5l5 5 5-5' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 0 center;
+        }
+
+        .select-wrap select:focus {
+            outline: none;
+        }
+
+        .model-badge {
+            font-size: 12px;
+            color: var(--gray-text);
+            background: #F3F4F6;
+            padding: 4px 8px;
+            border-radius: 6px;
+            white-space: nowrap;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 180px;
+            padding: 12px 14px;
+            border: 1.5px solid var(--gray-border);
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: var(--font);
+            color: var(--dark);
+            resize: vertical;
+            line-height: 1.5;
+            transition: border-color 0.15s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--blue);
+        }
+
+        textarea::placeholder {
+            color: #9CA3AF;
+        }
+
+        .char-count {
+            font-size: 13px;
+            color: var(--gray-text);
+            margin-top: 6px;
+        }
+
+        .upload-area {
+            margin-bottom: 18px;
+        }
+
+        .btn-upload {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border: 1.5px solid var(--gray-border);
+            border-radius: 8px;
+            background: #fff;
+            font-size: 14px;
+            font-family: var(--font);
+            color: var(--gray-text);
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+        }
+
+        .btn-upload:hover {
+            background: #F9FAFB;
+            border-color: #D1D5DB;
+        }
+
+        .btn-calculate {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            height: 48px;
+            padding: 0 24px;
+            border: none;
+            border-radius: 8px;
+            background: var(--blue);
+            color: #fff;
+            font-size: 16px;
+            font-weight: 500;
+            font-family: var(--font);
+            cursor: pointer;
+            transition: background 0.15s, opacity 0.15s;
+        }
+
+        .btn-calculate:hover {
+            background: var(--blue-hover);
+        }
+
+        .btn-calculate:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-calculate:disabled:hover {
+            background: var(--blue);
+        }
+
+        .btn-calculate .btn-label { display: inline; }
+        .btn-calculate.loading .spinner { display: block; }
+        .btn-calculate.loading .btn-label { display: none; }
+
+        .spinner {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .error-msg {
+            display: none;
+            margin-top: 12px;
+            padding: 12px 14px;
+            border-radius: 8px;
+            background: #FEF2F2;
+            border: 1px solid #FECACA;
+            color: #B91C1C;
+            font-size: 14px;
+        }
+
+        .error-msg.visible { display: block; }
+
+        /* Right panel — results */
+        .results-placeholder {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray-text);
+            font-size: 14px;
+        }
+
+        .results-content { display: none; }
+        .results-content.visible { display: block; }
+
+        .summary-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .summary-card {
+            padding: 16px;
+            border-radius: 10px;
+            border: none;
+        }
+
+        .summary-card.blue {
+            background: var(--blue-light);
+        }
+
+        .summary-card.green {
+            background: var(--green-light);
+        }
+
+        .summary-card-title {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gray-text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .summary-card-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--dark);
+            line-height: 1.2;
+        }
+
+        .summary-card-unit {
+            font-size: 13px;
+            color: var(--gray-text);
+            margin-top: 2px;
+        }
+
+        .summary-card-value--small {
+            font-size: 14px;
+            word-break: break-all;
+        }
+
+        .info-banner {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 14px;
+            background: var(--yellow-banner);
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #92400E;
+        }
+
+        .info-banner svg {
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .details-list {
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        .details-list dt {
+            color: var(--gray-text);
+            font-weight: 500;
+            margin-bottom: 2px;
+        }
+
+        .details-list dd {
+            margin-bottom: 10px;
+            margin-left: 0;
+        }
+
+        .tokenized-text-label {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gray-text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
+        }
+
+        .tokenized-text {
+            padding: 12px 14px;
+            border: 1.5px solid var(--gray-border);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: var(--font);
+            line-height: 1.6;
+            background: #FAFAFA;
+            min-height: 50px;
+            word-break: break-word;
+            white-space: pre-wrap;
+            margin-bottom: 16px;
+        }
+
+        .tokenized-text .token-span {
+            padding: 1px 2px;
+            border-radius: 3px;
+            white-space: pre;
+        }
+
+        .tokens-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .token-chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            line-height: 1.4;
+            background: var(--blue-light);
+            color: var(--dark);
+            border: 1px solid #BBDEFB;
+            white-space: pre;
+        }
+
+        .token-chip.special {
+            background: #FFF3E0;
+            border-color: #FFE0B2;
+            color: #E65100;
+        }
+
+        .token-chip .tid {
+            font-size: 11px;
+            color: var(--gray-text);
+            margin-left: 6px;
+        }
+
+        footer {
+            text-align: center;
+            padding: 16px;
+            font-size: 13px;
+            color: var(--gray-text);
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <a class="logo" href="/">
+            <div class="logo-icon">T</div>
+            <div class="logo-text">YC Tokenizer<span>— Yandex Cloud AI Studio</span></div>
+        </a>
+    </header>
+
+    <main>
+        <div class="panels">
+            <!-- Left: Input Content -->
+            <div class="card card-input">
+                <h2 class="card-title">
+                    <svg class="icon-doc" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    Input Content
+                </h2>
+
+                <div class="form-group">
+                    <label for="model">Модель</label>
+                    <div class="select-wrap">
+                        <select id="model"></select>
+                        <span class="model-badge" id="model-badge">—</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="text">Текст</label>
+                    <textarea id="text" placeholder="Введите текст для токенизации..."></textarea>
+                    <div class="char-count" id="char-count">0 символов</div>
+                </div>
+
+                <div class="upload-area">
+                    <label style="display:block; font-size:12px; font-weight:500; color:var(--gray-text); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Загрузка файлов</label>
+                    <button type="button" class="btn-upload" disabled title="Не реализовано">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        Select Files
+                    </button>
+                </div>
+
+                <button id="tokenize-btn" class="btn-calculate" disabled>
+                    <span class="btn-label">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
+                        Calculate Tokens
+                    </span>
+                    <div class="spinner"></div>
+                </button>
+
+                <div id="error" class="error-msg"></div>
+            </div>
+
+            <!-- Right: Token Count Results -->
+            <div class="card card-results">
+                <h2 class="card-title">
+                    <svg class="icon-doc result" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    Token Count Results
+                </h2>
+
+                <div class="results-placeholder" id="results-placeholder">
+                    Введите текст и нажмите «Calculate Tokens», чтобы увидеть результат.
+                </div>
+
+                <div class="results-content" id="results-content">
+                    <div class="summary-cards">
+                        <div class="summary-card blue">
+                            <div class="summary-card-title">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                Token Count
+                            </div>
+                            <div class="summary-card-value" id="count">0</div>
+                            <div class="summary-card-unit" id="count-label">TOKENS</div>
+                        </div>
+                        <div class="summary-card green">
+                            <div class="summary-card-title">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                                Версия модели
+                            </div>
+                            <div class="summary-card-value summary-card-value--small" id="model-version">—</div>
+                            <div class="summary-card-unit">model version</div>
+                        </div>
+                    </div>
+
+                    <div class="info-banner">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                        Подсветка показывает границы токенов в тексте ниже.
+                    </div>
+
+                    <dl class="details-list">
+                        <dt>Model</dt>
+                        <dd id="detail-model">—</dd>
+                        <dt>Characters</dt>
+                        <dd id="detail-chars">0</dd>
+                        <dt>Request size</dt>
+                        <dd id="detail-size">—</dd>
+                    </dl>
+
+                    <div class="tokenized-text-label">Текст с подсветкой токенов</div>
+                    <div class="tokenized-text" id="tokenized-text"></div>
+
+                    <div class="tokenized-text-label">Список токенов</div>
+                    <div class="tokens-list" id="tokens-list"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>Yandex Cloud AI Studio Tokenizer</footer>
+
+    <script>
+        const modelSelect = document.getElementById('model');
+        const modelBadge = document.getElementById('model-badge');
+        const textArea = document.getElementById('text');
+        const charCountEl = document.getElementById('char-count');
+        const btn = document.getElementById('tokenize-btn');
+        const errorEl = document.getElementById('error');
+        const resultsPlaceholder = document.getElementById('results-placeholder');
+        const resultsContent = document.getElementById('results-content');
+        const countEl = document.getElementById('count');
+        const countLabelEl = document.getElementById('count-label');
+        const versionEl = document.getElementById('model-version');
+        const detailModel = document.getElementById('detail-model');
+        const detailChars = document.getElementById('detail-chars');
+        const detailSize = document.getElementById('detail-size');
+        const listEl = document.getElementById('tokens-list');
+        const tokenizedTextEl = document.getElementById('tokenized-text');
+
+        const TOKEN_COLORS = [
+            '#E3F2FD', '#E8F5E9', '#FFF8E1', '#FCE4EC', '#E1F5FE', '#F3E5F5', '#E0F2F1', '#FFF3E0'
+        ];
+
+        function pluralTokens(n) {
+            const mod10 = n % 10;
+            const mod100 = n % 100;
+            if (mod10 === 1 && mod100 !== 11) return 'токен';
+            if (mod10 >= 2 && mod10 <= 4 && (mod100 < 12 || mod100 > 14)) return 'токена';
+            return 'токенов';
+        }
+
+        function updateCharCount() {
+            const n = textArea.value.length;
+            charCountEl.textContent = n + ' ' + (n === 1 ? 'символ' : n < 5 ? 'символа' : 'символов');
+        }
+
+        textArea.addEventListener('input', updateCharCount);
+
+        function updateModelBadge() {
+            const opt = modelSelect.options[modelSelect.selectedIndex];
+            modelBadge.textContent = opt ? opt.text.match(/\d+[K]$/)?.[0] || '—' : '—';
+        }
+
+        modelSelect.addEventListener('change', updateModelBadge);
+
+        async function loadModels() {
+            try {
+                const resp = await fetch('/api/models');
+                const data = await resp.json();
+                data.models.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.textContent = m.name;
+                    opt.dataset.context = m.context;
+                    if (m.id === data.default) opt.selected = true;
+                    modelSelect.appendChild(opt);
+                });
+                updateModelBadge();
+                btn.disabled = false;
+            } catch {
+                showError('Не удалось загрузить список моделей');
+            }
+        }
+
+        function showError(msg) {
+            errorEl.textContent = msg;
+            errorEl.classList.add('visible');
+        }
+
+        function hideError() {
+            errorEl.classList.remove('visible');
+        }
+
+        function escapeHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = str;
+            return d.innerHTML;
+        }
+
+        async function tokenize() {
+            hideError();
+            resultsContent.classList.remove('visible');
+            resultsPlaceholder.style.display = 'block';
+
+            const text = textArea.value;
+            if (!text.trim()) {
+                showError('Введите текст');
+                return;
+            }
+
+            btn.classList.add('loading');
+            btn.disabled = true;
+
+            try {
+                const resp = await fetch('/api/tokenize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        model: modelSelect.value,
+                        text: text,
+                    }),
+                });
+
+                if (!resp.ok) {
+                    const err = await resp.json().catch(() => null);
+                    throw new Error(err?.detail || `Ошибка ${resp.status}`);
+                }
+
+                const data = await resp.json();
+                const modelName = modelSelect.options[modelSelect.selectedIndex]?.textContent || modelSelect.value;
+
+                resultsPlaceholder.style.display = 'none';
+                resultsContent.classList.add('visible');
+
+                countEl.textContent = data.token_count;
+                countLabelEl.textContent = pluralTokens(data.token_count).toUpperCase();
+
+                versionEl.textContent = data.model_version || '—';
+                versionEl.style.fontSize = data.model_version && data.model_version.length > 12 ? '14px' : '28px';
+
+                detailModel.textContent = modelName;
+                detailChars.textContent = text.length;
+                detailSize.textContent = (new Blob([text]).size / 1024).toFixed(2) + ' KB';
+
+                const tokenSpans = [];
+                let colorIndex = 0;
+                data.tokens.forEach(t => {
+                    if (t.special) return;
+                    const displayText = t.text.replace(/\u2581/g, ' ');
+                    const bg = TOKEN_COLORS[colorIndex % TOKEN_COLORS.length];
+                    colorIndex++;
+                    tokenSpans.push(`<span class="token-span" style="background:${bg}" title="id: ${t.id}">${escapeHtml(displayText)}</span>`);
+                });
+                tokenizedTextEl.innerHTML = tokenSpans.join('');
+
+                listEl.innerHTML = data.tokens.map(t => {
+                    const cls = t.special ? 'token-chip special' : 'token-chip';
+                    const display = t.text.replace(/ /g, '\u00B7').replace(/\n/g, '\u21B5');
+                    return `<span class="${cls}">${escapeHtml(display)}<span class="tid">${t.id}</span></span>`;
+                }).join('');
+            } catch (e) {
+                showError(e.message);
+            } finally {
+                btn.classList.remove('loading');
+                btn.disabled = false;
+            }
+        }
+
+        btn.addEventListener('click', tokenize);
+
+        textArea.addEventListener('keydown', e => {
+            if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+                e.preventDefault();
+                tokenize();
+            }
+        });
+
+        loadModels();
+        updateCharCount();
+    </script>
+</body>
+</html>
