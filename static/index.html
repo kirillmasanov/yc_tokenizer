@@ -411,6 +411,43 @@
             white-space: pre;
         }
 
+        .tokens-list-details {
+            margin-top: 12px;
+            border: 1px solid var(--gray-border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .tokens-list-details summary {
+            padding: 10px 14px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gray-text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            list-style: none;
+            background: #FAFAFA;
+            user-select: none;
+        }
+
+        .tokens-list-details summary::-webkit-details-marker { display: none; }
+
+        .tokens-list-details summary::after {
+            content: ' ▼';
+            font-size: 10px;
+            opacity: 0.7;
+        }
+
+        .tokens-list-details[open] summary::after {
+            content: ' ▲';
+        }
+
+        .tokens-list-details .tokens-list {
+            padding: 12px 14px;
+            border-top: 1px solid var(--gray-border);
+        }
+
         .tokens-list {
             display: flex;
             flex-wrap: wrap;
@@ -548,8 +585,10 @@
                     <div class="tokenized-text-label">Текст с подсветкой токенов</div>
                     <div class="tokenized-text" id="tokenized-text"></div>
 
-                    <div class="tokenized-text-label">Список токенов</div>
-                    <div class="tokens-list" id="tokens-list"></div>
+                    <details class="tokens-list-details" id="tokens-list-details">
+                        <summary id="tokens-list-summary">Список токенов</summary>
+                        <div class="tokens-list" id="tokens-list"></div>
+                    </details>
                 </div>
             </div>
         </div>
@@ -696,6 +735,9 @@
                     const display = t.text.replace(/ /g, '\u00B7').replace(/\n/g, '\u21B5');
                     return `<span class="${cls}">${escapeHtml(display)}<span class="tid">${t.id}</span></span>`;
                 }).join('');
+
+                document.getElementById('tokens-list-summary').textContent = 'Список токенов (' + data.token_count + ')';
+                document.getElementById('tokens-list-details').open = false;
             } catch (e) {
                 showError(e.message);
             } finally {
