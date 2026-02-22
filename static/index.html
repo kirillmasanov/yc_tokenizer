@@ -759,7 +759,7 @@
                 const pricePer1000 = modelInfo?.price_per_1000;
                 if (pricePer1000 != null) {
                     const cost = (data.token_count / 1000) * pricePer1000;
-                    costEl.textContent = cost.toFixed(2).replace('.', ',') + ' ₽';
+                    costEl.textContent = cost.toFixed(3).replace('.', ',') + ' ₽';
                     detailPrice.textContent = pricePer1000.toFixed(2).replace('.', ',') + ' ₽ / 1000 токенов';
                 } else {
                     costEl.textContent = '—';
