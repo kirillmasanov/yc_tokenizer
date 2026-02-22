@@ -17,10 +17,6 @@ YANDEX_CLOUD_MODEL = os.getenv("YANDEX_CLOUD_MODEL", "yandexgpt/latest")
 TOKENIZE_URL = "https://ai.api.cloud.yandex.net/foundationModels/v1/tokenize"
 
 AVAILABLE_MODELS = [
-    {"id": "qwen3-235b-a22b-fp8/latest", "name": "Qwen3 235B", "context": "262K"},
-    {"id": "gpt-oss-120b/latest", "name": "GPT-OSS 120B", "context": "131K"},
-    {"id": "gpt-oss-20b/latest", "name": "GPT-OSS 20B", "context": "131K"},
-    {"id": "gemma-3-27b-it/latest", "name": "Gemma 3 27B", "context": "131K"},
     {"id": "yandexgpt/latest", "name": "YandexGPT Pro 5", "context": "32K"},
     {"id": "yandexgpt/rc", "name": "YandexGPT Pro 5.1", "context": "32K"},
     {"id": "yandexgpt-lite", "name": "YandexGPT Lite 5", "context": "32K"},
