@@ -114,6 +114,10 @@
             color: #22C55E;
         }
 
+        .card-title .icon-calc {
+            color: #22C55E;
+        }
+
         .form-group {
             margin-bottom: 18px;
         }
@@ -305,9 +309,10 @@
         }
 
         .summary-card {
-            padding: 16px;
-            border-radius: 10px;
+            padding: 18px;
+            border-radius: 12px;
             border: none;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
         }
 
         .summary-card.blue {
@@ -321,31 +326,76 @@
         .summary-card-title {
             display: flex;
             align-items: center;
-            gap: 6px;
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--gray-text);
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .summary-card-title-text {
+            font-size: 13px;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 8px;
+        }
+
+        .summary-card.blue .summary-card-title-text {
+            color: #1976D2;
+        }
+
+        .summary-card.green .summary-card-title-text {
+            color: #2E7D32;
+        }
+
+        .summary-card-title-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .summary-card.blue .summary-card-title-icon {
+            background: rgba(25, 118, 210, 0.15);
+            color: #1976D2;
+        }
+
+        .summary-card.green .summary-card-title-icon {
+            background: rgba(46, 125, 50, 0.15);
+            color: #2E7D32;
+        }
+
+        .summary-card-title-icon svg {
+            width: 18px;
+            height: 18px;
         }
 
         .summary-card-value {
-            font-size: 28px;
+            font-size: 32px;
             font-weight: 700;
-            color: var(--dark);
             line-height: 1.2;
         }
 
-        .summary-card-unit {
-            font-size: 13px;
-            color: var(--gray-text);
-            margin-top: 2px;
+        .summary-card.blue .summary-card-value {
+            color: #1976D2;
         }
 
-        .summary-card-value--small {
-            font-size: 14px;
-            word-break: break-all;
+        .summary-card.green .summary-card-value {
+            color: #2E7D32;
+        }
+
+        .summary-card-unit {
+            font-size: 12px;
+            font-weight: 500;
+            margin-top: 4px;
+        }
+
+        .summary-card.blue .summary-card-unit {
+            color: #1976D2;
+        }
+
+        .summary-card.green .summary-card-unit {
+            color: #2E7D32;
         }
 
         .details-list {
@@ -571,7 +621,7 @@
             <!-- Right: Token Count Results -->
             <div class="card card-results">
                 <h2 class="card-title">
-                    <svg class="icon-doc result" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    <svg class="icon-calc" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="8" y2="10.01"/><line x1="12" y1="10" x2="12" y2="10.01"/><line x1="16" y1="10" x2="16" y2="10.01"/><line x1="8" y1="14" x2="8" y2="14.01"/><line x1="12" y1="14" x2="12" y2="14.01"/><line x1="16" y1="14" x2="16" y2="14.01"/><line x1="8" y1="18" x2="8" y2="18.01"/><line x1="12" y1="18" x2="12" y2="18.01"/><line x1="16" y1="18" x2="16" y2="18.01"/></svg>
                     Token Count Results
                 </h2>
 
@@ -583,16 +633,20 @@
                     <div class="summary-cards">
                         <div class="summary-card blue">
                             <div class="summary-card-title">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                Token Count
+                                <span class="summary-card-title-text">Token Count</span>
+                                <div class="summary-card-title-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
+                                </div>
                             </div>
                             <div class="summary-card-value" id="count">0</div>
                             <div class="summary-card-unit" id="count-label">TOKENS</div>
                         </div>
                         <div class="summary-card green">
                             <div class="summary-card-title">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                                Стоимость
+                                <span class="summary-card-title-text">Стоимость</span>
+                                <div class="summary-card-title-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="4" x2="8" y2="20"/><path d="M8 4 Q14 4 14 12 L8 12"/><line x1="8" y1="12" x2="18" y2="12"/></svg>
+                                </div>
                             </div>
                             <div class="summary-card-value" id="cost-el">—</div>
                             <div class="summary-card-unit">вкл. НДС</div>
