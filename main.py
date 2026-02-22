@@ -17,10 +17,10 @@ YANDEX_CLOUD_MODEL = os.getenv("YANDEX_CLOUD_MODEL", "yandexgpt/latest")
 TOKENIZE_URL = "https://ai.api.cloud.yandex.net/foundationModels/v1/tokenize"
 
 AVAILABLE_MODELS = [
-    {"id": "yandexgpt/latest", "name": "YandexGPT Pro 5", "context": "32K"},
-    {"id": "yandexgpt/rc", "name": "YandexGPT Pro 5.1", "context": "32K"},
-    {"id": "yandexgpt-lite", "name": "YandexGPT Lite 5", "context": "32K"},
-    {"id": "aliceai-llm", "name": "Alice AI LLM", "context": "32K"},
+    {"id": "yandexgpt/latest", "name": "YandexGPT Pro 5", "context": "32K", "price_per_1000": 1.20},
+    {"id": "yandexgpt/rc", "name": "YandexGPT Pro 5.1", "context": "32K", "price_per_1000": 0.80},
+    {"id": "yandexgpt-lite", "name": "YandexGPT Lite 5", "context": "32K", "price_per_1000": 0.20},
+    {"id": "aliceai-llm", "name": "Alice AI LLM", "context": "32K", "price_per_1000": 0.50},
 ]
 
 app = FastAPI(title="YC Tokenizer")

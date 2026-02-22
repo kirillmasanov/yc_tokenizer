@@ -12,7 +12,6 @@
             --blue-hover: #005FD6;
             --blue-light: #E3F2FD;
             --green-light: #E8F5E9;
-            --yellow-banner: #FFF8E1;
             --gray-bg: #F5F5F5;
             --gray-border: #E0E0E0;
             --gray-text: #6B7280;
@@ -349,23 +348,6 @@
             word-break: break-all;
         }
 
-        .info-banner {
-            display: flex;
-            align-items: flex-start;
-            gap: 10px;
-            padding: 12px 14px;
-            background: var(--yellow-banner);
-            border-radius: 8px;
-            margin-bottom: 16px;
-            font-size: 13px;
-            color: #92400E;
-        }
-
-        .info-banner svg {
-            flex-shrink: 0;
-            margin-top: 1px;
-        }
-
         .details-list {
             font-size: 13px;
             margin-bottom: 20px;
@@ -446,6 +428,55 @@
         .tokens-list-details .tokens-list {
             padding: 12px 14px;
             border-top: 1px solid var(--gray-border);
+        }
+
+        .raw-json-details {
+            margin-top: 12px;
+            border: 1px solid var(--gray-border);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .raw-json-details summary {
+            padding: 10px 14px;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gray-text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            cursor: pointer;
+            list-style: none;
+            background: #FAFAFA;
+            user-select: none;
+        }
+
+        .raw-json-details summary::-webkit-details-marker { display: none; }
+
+        .raw-json-details summary::after {
+            content: ' ▼';
+            font-size: 10px;
+            opacity: 0.7;
+        }
+
+        .raw-json-details[open] summary::after {
+            content: ' ▲';
+        }
+
+        .raw-json-details .raw-json-body {
+            padding: 12px 14px;
+            border-top: 1px solid var(--gray-border);
+            background: #F9FAFB;
+            overflow-x: auto;
+        }
+
+        .raw-json-details pre {
+            margin: 0;
+            font-size: 12px;
+            font-family: ui-monospace, monospace;
+            line-height: 1.5;
+            color: var(--dark);
+            white-space: pre-wrap;
+            word-break: break-all;
         }
 
         .tokens-list {
@@ -561,21 +592,20 @@
                         <div class="summary-card green">
                             <div class="summary-card-title">
                                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
-                                Версия модели
+                                Стоимость
                             </div>
-                            <div class="summary-card-value summary-card-value--small" id="model-version">—</div>
-                            <div class="summary-card-unit">model version</div>
+                            <div class="summary-card-value" id="cost-el">—</div>
+                            <div class="summary-card-unit">вкл. НДС</div>
                         </div>
-                    </div>
-
-                    <div class="info-banner">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-                        Подсветка показывает границы токенов в тексте ниже.
                     </div>
 
                     <dl class="details-list">
                         <dt>Model</dt>
                         <dd id="detail-model">—</dd>
+                        <dt>Версия модели</dt>
+                        <dd id="detail-version">—</dd>
+                        <dt>Тарификация</dt>
+                        <dd id="detail-price">—</dd>
                         <dt>Characters</dt>
                         <dd id="detail-chars">0</dd>
                         <dt>Request size</dt>
@@ -588,6 +618,13 @@
                     <details class="tokens-list-details" id="tokens-list-details">
                         <summary id="tokens-list-summary">Список токенов</summary>
                         <div class="tokens-list" id="tokens-list"></div>
+                    </details>
+
+                    <details class="raw-json-details" id="raw-json-details">
+                        <summary>Сырой ответ JSON</summary>
+                        <div class="raw-json-body">
+                            <pre id="raw-json-pre"></pre>
+                        </div>
                     </details>
                 </div>
             </div>
@@ -607,10 +644,14 @@
         const resultsContent = document.getElementById('results-content');
         const countEl = document.getElementById('count');
         const countLabelEl = document.getElementById('count-label');
-        const versionEl = document.getElementById('model-version');
+        const costEl = document.getElementById('cost-el');
         const detailModel = document.getElementById('detail-model');
+        const detailVersion = document.getElementById('detail-version');
+        const detailPrice = document.getElementById('detail-price');
         const detailChars = document.getElementById('detail-chars');
         const detailSize = document.getElementById('detail-size');
+
+        let modelsData = [];
         const listEl = document.getElementById('tokens-list');
         const tokenizedTextEl = document.getElementById('tokenized-text');
 
@@ -644,7 +685,8 @@
             try {
                 const resp = await fetch('/api/models');
                 const data = await resp.json();
-                data.models.forEach(m => {
+                modelsData = data.models || [];
+                modelsData.forEach(m => {
                     const opt = document.createElement('option');
                     opt.value = m.id;
                     opt.textContent = m.name;
@@ -712,10 +754,20 @@
                 countEl.textContent = data.token_count;
                 countLabelEl.textContent = pluralTokens(data.token_count).toUpperCase();
 
-                versionEl.textContent = data.model_version || '—';
-                versionEl.style.fontSize = data.model_version && data.model_version.length > 12 ? '14px' : '28px';
+                const modelId = modelSelect.value;
+                const modelInfo = modelsData.find(m => m.id === modelId);
+                const pricePer1000 = modelInfo?.price_per_1000;
+                if (pricePer1000 != null) {
+                    const cost = (data.token_count / 1000) * pricePer1000;
+                    costEl.textContent = cost.toFixed(2).replace('.', ',') + ' ₽';
+                    detailPrice.textContent = pricePer1000.toFixed(2).replace('.', ',') + ' ₽ / 1000 токенов';
+                } else {
+                    costEl.textContent = '—';
+                    detailPrice.textContent = '—';
+                }
 
                 detailModel.textContent = modelName;
+                detailVersion.textContent = data.model_version || '—';
                 detailChars.textContent = text.length;
                 detailSize.textContent = (new Blob([text]).size / 1024).toFixed(2) + ' KB';
 
@@ -738,6 +790,9 @@
 
                 document.getElementById('tokens-list-summary').textContent = 'Список токенов (' + data.token_count + ')';
                 document.getElementById('tokens-list-details').open = false;
+
+                document.getElementById('raw-json-pre').textContent = JSON.stringify(data, null, 2);
+                document.getElementById('raw-json-details').open = false;
             } catch (e) {
                 showError(e.message);
             } finally {
