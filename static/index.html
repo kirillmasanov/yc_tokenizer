@@ -266,6 +266,18 @@
             pointer-events: none;
         }
 
+        .price-unit-toggle {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+            color: var(--gray-text);
+            cursor: pointer;
+        }
+        .price-unit-toggle input { accent-color: var(--primary); }
+        .price-unit-toggle span { user-select: none; }
+
         textarea {
             width: 100%;
             min-height: 180px;
@@ -720,6 +732,11 @@
                     Token Count Results
                 </h2>
 
+                <label class="price-unit-toggle">
+                    <input type="checkbox" id="price-per-1m-cb" autocomplete="off">
+                    <span>Тарификация за 1 млн токенов</span>
+                </label>
+
                 <div class="results-placeholder" id="results-placeholder">
                     Введите текст и нажмите «Calculate Tokens», чтобы увидеть результат.
                 </div>
@@ -805,6 +822,9 @@
         const detailSize = document.getElementById('detail-size');
 
         let modelsData = [];
+        let lastTokenCount = null;
+        let lastPricePer1000 = null;
+        let lastCost = null;
         const listEl = document.getElementById('tokens-list');
         const tokenizedTextEl = document.getElementById('tokenized-text');
 
@@ -827,9 +847,46 @@
 
         textArea.addEventListener('input', updateCharCount);
 
+        function pricePer1M() {
+            return document.getElementById('price-per-1m-cb').checked;
+        }
+
         function formatPriceBadge(pricePer1000) {
             if (pricePer1000 == null) return '—';
+            if (pricePer1M()) {
+                const per1M = pricePer1000 * 1000;
+                return Math.round(per1M) + ' ₽/1M';
+            }
             return pricePer1000.toFixed(2).replace('.', ',') + ' ₽/1K';
+        }
+
+        function formatPriceDetail(pricePer1000, per1M) {
+            if (pricePer1000 == null) return '—';
+            if (per1M) {
+                const per1MVal = pricePer1000 * 1000;
+                return Math.round(per1MVal) + ' ₽ / 1 млн. токенов';
+            }
+            return pricePer1000.toFixed(2).replace('.', ',') + ' ₽ / 1000 токенов';
+        }
+
+        function formatCostDisplay(cost) {
+            if (cost == null || !Number.isFinite(cost)) return '—';
+            if (pricePer1M()) {
+                const rounded = Math.round(cost);
+                if (rounded === 0 && cost > 0) return cost.toFixed(3).replace('.', ',') + ' ₽';
+                return rounded + ' ₽';
+            }
+            return cost.toFixed(3).replace('.', ',') + ' ₽';
+        }
+
+        function updateDetailPriceFromModel() {
+            if (!resultsContent.classList.contains('visible')) return;
+            const modelInfo = modelsData.find(m => m.id === modelSelect.value);
+            const pricePer1000 = modelInfo?.price_per_1000;
+            detailPrice.textContent = formatPriceDetail(pricePer1000 ?? null, pricePer1M());
+            if (lastCost != null) {
+                costEl.textContent = formatCostDisplay(lastCost);
+            }
         }
 
         function updateModelTrigger() {
@@ -882,6 +939,16 @@
             e.preventDefault();
             const open = modelDropdown.classList.toggle('open');
             modelTrigger.setAttribute('aria-expanded', open);
+        });
+
+        document.getElementById('price-per-1m-cb').addEventListener('change', () => {
+            updateModelTrigger();
+            modelPanel.querySelectorAll('.model-dropdown-option').forEach(el => {
+                const m = modelsData.find(x => x.id === el.dataset.id);
+                const badge = el.querySelector('.model-dropdown-option-badge');
+                if (badge) badge.textContent = m ? formatPriceBadge(m.price_per_1000) : '—';
+            });
+            updateDetailPriceFromModel();
         });
 
         document.addEventListener('click', (e) => {
@@ -948,10 +1015,15 @@
                 const modelInfo = modelsData.find(m => m.id === modelId);
                 const pricePer1000 = modelInfo?.price_per_1000;
                 if (pricePer1000 != null) {
-                    const cost = (data.token_count / 1000) * pricePer1000;
-                    costEl.textContent = cost.toFixed(3).replace('.', ',') + ' ₽';
-                    detailPrice.textContent = pricePer1000.toFixed(2).replace('.', ',') + ' ₽ / 1000 токенов';
+                    lastTokenCount = data.token_count;
+                    lastPricePer1000 = pricePer1000;
+                    lastCost = (data.token_count / 1000) * pricePer1000;
+                    costEl.textContent = formatCostDisplay(lastCost);
+                    detailPrice.textContent = formatPriceDetail(pricePer1000, pricePer1M());
                 } else {
+                    lastTokenCount = null;
+                    lastPricePer1000 = null;
+                    lastCost = null;
                     costEl.textContent = '—';
                     detailPrice.textContent = '—';
                 }
