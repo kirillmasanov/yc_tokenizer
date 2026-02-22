@@ -132,48 +132,31 @@
             letter-spacing: 0.5px;
         }
 
-        .select-wrap {
-            display: flex;
-            align-items: center;
-            gap: 8px;
+        select {
+            width: 100%;
+            height: 44px;
+            padding: 0 14px 0 14px;
             border: 1.5px solid var(--gray-border);
             border-radius: 8px;
-            padding: 0 12px;
-            background: #fff;
-            min-height: 44px;
-        }
-
-        .select-wrap:focus-within {
-            border-color: var(--blue);
-            outline: none;
-        }
-
-        .select-wrap select {
-            flex: 1;
-            border: none;
-            background: none;
             font-size: 15px;
             font-family: var(--font);
             color: var(--dark);
+            background: #fff;
             cursor: pointer;
-            padding: 10px 0;
             appearance: none;
             background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5l5 5 5-5' stroke='%236B7280' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
             background-repeat: no-repeat;
-            background-position: right 0 center;
+            background-position: right 14px center;
+            transition: border-color 0.15s;
         }
 
-        .select-wrap select:focus {
+        select:hover {
+            border-color: #D1D5DB;
+        }
+
+        select:focus {
             outline: none;
-        }
-
-        .model-badge {
-            font-size: 12px;
-            color: var(--gray-text);
-            background: #F3F4F6;
-            padding: 4px 8px;
-            border-radius: 6px;
-            white-space: nowrap;
+            border-color: var(--blue);
         }
 
         textarea {
@@ -587,10 +570,7 @@
 
                 <div class="form-group">
                     <label for="model">Модель</label>
-                    <div class="select-wrap">
-                        <select id="model"></select>
-                        <span class="model-badge" id="model-badge">—</span>
-                    </div>
+                    <select id="model"></select>
                 </div>
 
                 <div class="form-group">
@@ -689,7 +669,6 @@
 
     <script>
         const modelSelect = document.getElementById('model');
-        const modelBadge = document.getElementById('model-badge');
         const textArea = document.getElementById('text');
         const charCountEl = document.getElementById('char-count');
         const btn = document.getElementById('tokenize-btn');
@@ -728,13 +707,6 @@
 
         textArea.addEventListener('input', updateCharCount);
 
-        function updateModelBadge() {
-            const opt = modelSelect.options[modelSelect.selectedIndex];
-            modelBadge.textContent = opt ? opt.text.match(/\d+[K]$/)?.[0] || '—' : '—';
-        }
-
-        modelSelect.addEventListener('change', updateModelBadge);
-
         async function loadModels() {
             try {
                 const resp = await fetch('/api/models');
@@ -744,11 +716,9 @@
                     const opt = document.createElement('option');
                     opt.value = m.id;
                     opt.textContent = m.name;
-                    opt.dataset.context = m.context;
                     if (m.id === data.default) opt.selected = true;
                     modelSelect.appendChild(opt);
                 });
-                updateModelBadge();
                 btn.disabled = false;
             } catch {
                 showError('Не удалось загрузить список моделей');
