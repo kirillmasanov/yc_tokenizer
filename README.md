@@ -93,6 +93,7 @@ docker run -p 8000:8000 --env-file .env yc-tokenizer
 | Метод | Путь | Описание |
 |-------|------|----------|
 | GET | `/` | Веб-интерфейс |
+| GET | `/api/health` | Health check (Docker, мониторинг) |
 | GET | `/api/models` | Список моделей и тарифов |
 | POST | `/api/tokenize` | Токенизация текста |
 

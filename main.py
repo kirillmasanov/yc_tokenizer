@@ -115,6 +115,12 @@ async def get_models():
     }
 
 
+@app.get("/api/health")
+async def health():
+    """Health check для Docker и мониторинга."""
+    return {"status": "ok"}
+
+
 @app.post("/api/tokenize", response_model=TokenizeResponse)
 async def tokenize(req: TokenizeRequest):
     if not req.text.strip():
