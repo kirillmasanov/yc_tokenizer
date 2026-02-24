@@ -668,6 +668,11 @@
             font-size: 13px;
             color: var(--gray-text);
         }
+        footer a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+        footer a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -798,7 +803,9 @@
         </div>
     </main>
 
-    <footer>Yandex Cloud AI Studio Tokenizer</footer>
+    <footer>
+        Yandex Cloud AI Studio Tokenizer. Актуальная стоимость токенов: <a href="https://yandex.cloud/ru/docs/ai-studio/pricing" target="_blank" rel="noopener noreferrer">yandex.cloud/ru/docs/ai-studio/pricing</a>
+    </footer>
 
     <script>
         const modelSelect = document.getElementById('model');
