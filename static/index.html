@@ -931,7 +931,7 @@
 
         async function loadModels() {
             try {
-                const resp = await fetch('/api/models');
+                const resp = await fetch('api/models');
                 const data = await resp.json();
                 modelsData = data.models || [];
                 const defaultId = data.default || (modelsData[0] && modelsData[0].id);
@@ -1018,7 +1018,7 @@
             btn.disabled = true;
 
             try {
-                const resp = await fetch('/api/tokenize', {
+                const resp = await fetch('api/tokenize', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
