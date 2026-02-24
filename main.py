@@ -13,7 +13,6 @@ load_dotenv()
 
 YANDEX_API_KEY = os.getenv("YANDEX_API_KEY", "")
 YANDEX_FOLDER_ID = os.getenv("YANDEX_FOLDER_ID", "")
-YANDEX_CLOUD_MODEL = os.getenv("YANDEX_CLOUD_MODEL", "yandexgpt/latest")
 
 TOKENIZE_URL = "https://ai.api.cloud.yandex.net/foundationModels/v1/tokenize"
 
@@ -112,7 +111,7 @@ async def index():
 async def get_models():
     return {
         "models": AVAILABLE_MODELS,
-        "default": YANDEX_CLOUD_MODEL,
+        "default": AVAILABLE_MODELS[0]["id"] if AVAILABLE_MODELS else None,
     }
 
 
