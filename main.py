@@ -26,13 +26,13 @@ LOCAL_TOKENIZER_HF_MODEL: dict[str, str] = {
 }
 
 AVAILABLE_MODELS = [
-    {"id": "yandexgpt/latest", "name": "YandexGPT Pro 5", "context": "32K", "price_per_1000": 1.20},
-    {"id": "yandexgpt/rc", "name": "YandexGPT Pro 5.1", "context": "32K", "price_per_1000": 0.80},
-    {"id": "yandexgpt-lite", "name": "YandexGPT Lite 5", "context": "32K", "price_per_1000": 0.20},
-    {"id": "aliceai-llm", "name": "Alice AI LLM", "context": "32K", "price_per_1000": 0.50},
-    {"id": "qwen3-235b-a22b-fp8", "name": "Qwen3 235B A22B (FP8)", "context": "32K", "price_per_1000": 0.50},
-    {"id": "gpt-oss-120b", "name": "GPT-OSS 120B", "context": "32K", "price_per_1000": 0.30},
-    {"id": "gpt-oss-20b", "name": "GPT-OSS 20B", "context": "32K", "price_per_1000": 0.10},
+    {"id": "yandexgpt/latest", "name": "YandexGPT Pro 5", "context": "32768", "price_per_1000": 1.20},
+    {"id": "yandexgpt/rc", "name": "YandexGPT Pro 5.1", "context": "32768", "price_per_1000": 0.80},
+    {"id": "yandexgpt-lite", "name": "YandexGPT Lite 5", "context": "32768", "price_per_1000": 0.20},
+    {"id": "aliceai-llm", "name": "Alice AI LLM", "context": "32768", "price_per_1000": 0.50},
+    {"id": "qwen3-235b-a22b-fp8", "name": "Qwen3 235B A22B (FP8)", "context": "262144", "price_per_1000": 0.50},
+    {"id": "gpt-oss-120b", "name": "GPT-OSS 120B", "context": "131072", "price_per_1000": 0.30},
+    {"id": "gpt-oss-20b", "name": "GPT-OSS 20B", "context": "131072", "price_per_1000": 0.10},
 ]
 
 # Кэш токенизаторов Hugging Face (model_id -> tokenizer)
@@ -169,4 +169,4 @@ async def tokenize(req: TokenizeRequest):
 if __name__ == "__main__":
     import uvicorn
 
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8080, reload=True)
