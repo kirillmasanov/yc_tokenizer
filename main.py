@@ -17,11 +17,12 @@ YANDEX_FOLDER_ID = os.getenv("YANDEX_FOLDER_ID", "")
 TOKENIZE_URL = "https://ai.api.cloud.yandex.net/foundationModels/v1/tokenize"
 
 # Модели, для которых токенизация выполняется локально (Hugging Face), т.к. Yandex API не отдаёт токенизатор
-LOCAL_TOKENIZER_MODELS = {"qwen3-235b-a22b-fp8", "gpt-oss-120b", "gpt-oss-20b"}
+LOCAL_TOKENIZER_MODELS = {"qwen3-235b-a22b-fp8", "gpt-oss-120b", "gpt-oss-20b", "deepseek-v32"}
 LOCAL_TOKENIZER_HF_MODEL: dict[str, str] = {
     "qwen3-235b-a22b-fp8": "Qwen/Qwen3-0.6B",
     "gpt-oss-120b": "openai/gpt-oss-120b",
     "gpt-oss-20b": "openai/gpt-oss-20b",
+    "deepseek-v32": "deepseek-ai/DeepSeek-V3",
 }
 
 AVAILABLE_MODELS = [
@@ -32,6 +33,7 @@ AVAILABLE_MODELS = [
     {"id": "qwen3-235b-a22b-fp8", "name": "Qwen3 235B A22B (FP8)", "context": "262144", "price_per_1000": 0.50},
     {"id": "gpt-oss-120b", "name": "GPT-OSS 120B", "context": "131072", "price_per_1000": 0.30},
     {"id": "gpt-oss-20b", "name": "GPT-OSS 20B", "context": "131072", "price_per_1000": 0.10},
+    {"id": "deepseek-v32", "name": "DeepSeek V3.2", "context": "131072", "price_per_1000": 0.50},
 ]
 
 # Кэш токенизаторов Hugging Face (model_id -> tokenizer)
@@ -75,7 +77,12 @@ def _tokenize_local(model_id: str, text: str) -> tuple[list["TokenInfo"], str]:
         )
         for tid in ids
     ]
-    model_version = "local (GPT-OSS)" if "gpt-oss" in model_id else "local (Qwen3)"
+    if "gpt-oss" in model_id:
+        model_version = "local (GPT-OSS)"
+    elif "deepseek" in model_id:
+        model_version = "local (DeepSeek)"
+    else:
+        model_version = "local (Qwen3)"
     return tokens, model_version
 
 
