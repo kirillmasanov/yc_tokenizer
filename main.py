@@ -17,7 +17,7 @@ YANDEX_FOLDER_ID = os.getenv("YANDEX_FOLDER_ID", "")
 TOKENIZE_URL = "https://llm.api.cloud.yandex.net/foundationModels/v1/tokenize"
 
 # Модели, для которых токенизация выполняется локально (Hugging Face), т.к. Yandex API не отдаёт токенизатор
-LOCAL_TOKENIZER_MODELS = {"qwen3-235b-a22b-fp8", "gpt-oss-120b", "gpt-oss-20b", "deepseek-v32"}
+LOCAL_TOKENIZER_MODELS = {"qwen3-235b-a22b-fp8", "qwen3.6-35b-a3b", "gpt-oss-120b", "gpt-oss-20b", "deepseek-v32"}
 
 # Модели, которые не поддерживают токенизацию через API — используем токенизатор-прокси
 TOKENIZER_PROXY: dict[str, str] = {
@@ -25,6 +25,7 @@ TOKENIZER_PROXY: dict[str, str] = {
 }
 LOCAL_TOKENIZER_HF_MODEL: dict[str, str] = {
     "qwen3-235b-a22b-fp8": "Qwen/Qwen3-0.6B",
+    "qwen3.6-35b-a3b": "Qwen/Qwen3-0.6B",
     "gpt-oss-120b": "openai/gpt-oss-120b",
     "gpt-oss-20b": "openai/gpt-oss-20b",
     "deepseek-v32": "deepseek-ai/DeepSeek-V3",
@@ -36,6 +37,7 @@ AVAILABLE_MODELS = [
     {"id": "yandexgpt-lite", "name": "YandexGPT Lite 5", "context": "32768", "price_per_1000": 0.20},
     {"id": "aliceai-llm", "name": "Alice AI LLM", "context": "32768", "price_per_1000": 0.50},
     {"id": "qwen3-235b-a22b-fp8", "name": "Qwen3 235B A22B (FP8)", "context": "262144", "price_per_1000": 0.50},
+    {"id": "qwen3.6-35b-a3b", "name": "Qwen3.6 35B A3B", "context": "262144", "price_per_1000": 0.20},
     {"id": "gpt-oss-120b", "name": "GPT-OSS 120B", "context": "131072", "price_per_1000": 0.30},
     {"id": "gpt-oss-20b", "name": "GPT-OSS 20B", "context": "131072", "price_per_1000": 0.10},
     {"id": "deepseek-v32", "name": "DeepSeek V3.2", "context": "131072", "price_per_1000": 0.50},
