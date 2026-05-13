@@ -1,3 +1,4 @@
+import asyncio
 import os
 from pathlib import Path
 from typing import Any
@@ -7,7 +8,9 @@ from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
+MAX_TEXT_LENGTH = 1_000_000  # ~1 МБ — защита от слишком больших запросов
 
 load_dotenv()
 
@@ -45,31 +48,38 @@ AVAILABLE_MODELS = [
 
 # Кэш токенизаторов Hugging Face (model_id -> tokenizer)
 _hf_tokenizer_cache: dict[str, Any] = {}
+_hf_tokenizer_locks: dict[str, asyncio.Lock] = {}
 
 
-def _get_local_tokenizer(model_id: str):
-    """Ленивая загрузка и кэширование токенизатора для модели с локальной токенизацией."""
+async def _get_local_tokenizer(model_id: str):
+    """Ленивая загрузка и кэширование токенизатора. Блокировка предотвращает
+    повторную загрузку при одновременных запросах для одной модели."""
     if model_id in _hf_tokenizer_cache:
         return _hf_tokenizer_cache[model_id]
     hf_model_id = LOCAL_TOKENIZER_HF_MODEL.get(model_id)
     if not hf_model_id:
         raise ValueError(f"Unknown local tokenizer model: {model_id}")
-    try:
-        from transformers import AutoTokenizer
 
-        tokenizer = AutoTokenizer.from_pretrained(hf_model_id)
-    except Exception as e:
-        raise HTTPException(
-            status_code=503,
-            detail=f"Не удалось загрузить токенизатор ({hf_model_id}): {e}",
-        ) from e
-    _hf_tokenizer_cache[model_id] = tokenizer
-    return tokenizer
+    lock = _hf_tokenizer_locks.setdefault(model_id, asyncio.Lock())
+    async with lock:
+        if model_id in _hf_tokenizer_cache:
+            return _hf_tokenizer_cache[model_id]
+        try:
+            from transformers import AutoTokenizer
+
+            tokenizer = await asyncio.to_thread(AutoTokenizer.from_pretrained, hf_model_id)
+        except Exception as e:
+            raise HTTPException(
+                status_code=503,
+                detail=f"Не удалось загрузить токенизатор ({hf_model_id}): {e}",
+            ) from e
+        _hf_tokenizer_cache[model_id] = tokenizer
+        return tokenizer
 
 
-def _tokenize_local(model_id: str, text: str) -> tuple[list["TokenInfo"], str]:
+async def _tokenize_local(model_id: str, text: str) -> tuple[list["TokenInfo"], str]:
     """Токенизация текста локальным (Hugging Face) токенизатором. Возвращает (tokens, model_version)."""
-    tokenizer = _get_local_tokenizer(model_id)
+    tokenizer = await _get_local_tokenizer(model_id)
     try:
         ids = tokenizer.encode(text, add_special_tokens=False)
     except Exception as e:
@@ -101,7 +111,7 @@ app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 class TokenizeRequest(BaseModel):
     model: str
-    text: str
+    text: str = Field(max_length=MAX_TEXT_LENGTH)
 
 
 class TokenInfo(BaseModel):
@@ -135,17 +145,29 @@ async def health():
     return {"status": "ok"}
 
 
+_KNOWN_MODEL_IDS = {m["id"] for m in AVAILABLE_MODELS}
+
+
 @app.post("/api/tokenize", response_model=TokenizeResponse)
 async def tokenize(req: TokenizeRequest):
     if not req.text.strip():
         raise HTTPException(status_code=400, detail="Text must not be empty")
 
+    if req.model not in _KNOWN_MODEL_IDS:
+        raise HTTPException(status_code=400, detail=f"Unknown model: {req.model}")
+
     if req.model in LOCAL_TOKENIZER_MODELS:
-        tokens, model_version = _tokenize_local(req.model, req.text)
+        tokens, model_version = await _tokenize_local(req.model, req.text)
         return TokenizeResponse(
             token_count=len(tokens),
             tokens=tokens,
             model_version=model_version,
+        )
+
+    if not YANDEX_API_KEY or not YANDEX_FOLDER_ID:
+        raise HTTPException(
+            status_code=503,
+            detail="YANDEX_API_KEY и YANDEX_FOLDER_ID не настроены в .env",
         )
 
     api_model = TOKENIZER_PROXY.get(req.model, req.model)
@@ -165,7 +187,7 @@ async def tokenize(req: TokenizeRequest):
                 },
             )
         except httpx.RequestError as e:
-            raise HTTPException(status_code=502, detail=f"Yandex API request failed: {e}")
+            raise HTTPException(status_code=502, detail=f"Yandex API request failed: {e}") from e
 
     if resp.status_code != 200:
         detail = f"Yandex API error: {resp.text}"

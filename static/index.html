@@ -78,14 +78,15 @@
 
         .panels {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            align-items: stretch;
             gap: 24px;
             max-width: 1200px;
             margin: 0 auto;
         }
 
         @media (max-width: 900px) {
-            .panels { grid-template-columns: 1fr; }
+            .panels { grid-template-columns: minmax(0, 1fr); }
         }
 
         .card {
@@ -93,7 +94,6 @@
             border-radius: var(--radius);
             box-shadow: var(--card-shadow);
             padding: 24px;
-            height: fit-content;
         }
 
         .card-title {
@@ -305,10 +305,30 @@
             position: relative;
         }
 
+        .textarea-wrapper.drag-over textarea {
+            border-color: var(--blue);
+            background: var(--blue-light);
+        }
+
+        .textarea-wrapper.drag-over::after {
+            content: 'Отпустите файлы для загрузки';
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 119, 255, 0.08);
+            border: 2px dashed var(--blue);
+            border-radius: 8px;
+            color: var(--blue);
+            font-weight: 500;
+            pointer-events: none;
+        }
+
         .btn-clear-text {
             position: absolute;
             top: 8px;
-            right: 8px;
+            right: 20px;
             width: 22px;
             height: 22px;
             border: none;
@@ -345,24 +365,58 @@
             margin-bottom: 18px;
         }
 
-        .btn-upload {
-            display: inline-flex;
+        .dropzone {
+            display: flex;
+            flex-direction: column;
             align-items: center;
+            justify-content: center;
             gap: 8px;
-            padding: 10px 16px;
-            border: 1.5px solid var(--gray-border);
+            padding: 24px;
+            border: 2px dashed var(--gray-border);
             border-radius: 8px;
-            background: #fff;
-            font-size: 14px;
-            font-family: var(--font);
+            background: #FAFAFA;
             color: var(--gray-text);
+            font-size: 14px;
             cursor: pointer;
-            transition: border-color 0.15s, background 0.15s;
+            text-align: center;
+            transition: border-color 0.15s, background 0.15s, color 0.15s;
         }
 
-        .btn-upload:hover {
-            background: #F9FAFB;
-            border-color: #D1D5DB;
+        .dropzone:hover {
+            border-color: var(--blue);
+            background: var(--blue-light);
+            color: var(--blue);
+        }
+
+        .dropzone.drag-over {
+            border-color: var(--blue);
+            background: var(--blue-light);
+            color: var(--blue);
+        }
+
+        .dropzone-icon {
+            width: 32px;
+            height: 32px;
+            opacity: 0.6;
+        }
+
+        .dropzone:hover .dropzone-icon,
+        .dropzone.drag-over .dropzone-icon {
+            opacity: 1;
+        }
+
+        .dropzone-text {
+            line-height: 1.4;
+        }
+
+        .dropzone-hint {
+            font-size: 12px;
+            opacity: 0.7;
+        }
+
+        .dropzone-link {
+            color: var(--blue);
+            font-weight: 500;
         }
 
         .btn-calculate {
@@ -491,6 +545,52 @@
             flex-shrink: 0;
         }
 
+        .btn-copy {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border: 1px solid var(--gray-border);
+            border-radius: 6px;
+            background: #fff;
+            font-size: 12px;
+            font-family: var(--font);
+            color: var(--gray-text);
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+        }
+
+        .btn-copy:hover {
+            background: #F9FAFB;
+            color: var(--dark);
+            border-color: #D1D5DB;
+        }
+
+        .btn-copy.copied {
+            background: var(--green-light);
+            color: #2E7D32;
+            border-color: #A5D6A7;
+        }
+
+        .summary-card .btn-copy {
+            background: rgba(255, 255, 255, 0.5);
+            border: none;
+        }
+
+        .summary-card .btn-copy:hover {
+            background: rgba(255, 255, 255, 0.9);
+        }
+
+        .raw-json-details summary {
+            display: flex;
+            align-items: center;
+        }
+
+        .raw-json-details summary .btn-copy {
+            margin-left: auto;
+            margin-right: 8px;
+        }
+
         .summary-card.blue .summary-card-title-icon {
             background: rgba(25, 118, 210, 0.15);
             color: #1976D2;
@@ -559,6 +659,11 @@
             margin-bottom: 8px;
         }
 
+        .tokenized-text-wrapper {
+            position: relative;
+            margin-bottom: 8px;
+        }
+
         .tokenized-text {
             padding: 12px 14px;
             border: 1.5px solid var(--gray-border);
@@ -568,9 +673,50 @@
             line-height: 1.6;
             background: #FAFAFA;
             min-height: 50px;
+            max-height: 200px;
+            overflow: hidden;
             word-break: break-word;
             white-space: pre-wrap;
-            margin-bottom: 16px;
+        }
+
+        .tokenized-text-wrapper.expanded .tokenized-text {
+            max-height: none;
+        }
+
+        .tokenized-text-wrapper:not(.expanded):not(.fits) .tokenized-text::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 50px;
+            background: linear-gradient(to bottom, rgba(250, 250, 250, 0), #FAFAFA);
+            border-radius: 0 0 8px 8px;
+            pointer-events: none;
+        }
+
+        .btn-toggle-expand {
+            display: none;
+            margin: 0 0 16px;
+            padding: 6px 12px;
+            border: 1px solid var(--gray-border);
+            border-radius: 6px;
+            background: #fff;
+            font-size: 12px;
+            font-family: var(--font);
+            color: var(--gray-text);
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s, border-color 0.15s;
+        }
+
+        .btn-toggle-expand:hover {
+            background: #F9FAFB;
+            color: var(--dark);
+            border-color: #D1D5DB;
+        }
+
+        .tokenized-text-wrapper:not(.fits) + .btn-toggle-expand {
+            display: inline-block;
         }
 
         .tokenized-text .token-span {
@@ -665,6 +811,105 @@
             word-break: break-all;
         }
 
+        .history-section {
+            margin-top: 24px;
+        }
+
+        .history-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .history-title {
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--gray-text);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-clear-history {
+            font-size: 12px;
+            color: var(--gray-text);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: var(--font);
+        }
+
+        .btn-clear-history:hover {
+            color: #B91C1C;
+            background: #FEF2F2;
+        }
+
+        .history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 10px 12px;
+            border: 1px solid var(--gray-border);
+            border-radius: 8px;
+            background: #FAFAFA;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+        }
+
+        .history-item:hover {
+            border-color: var(--blue);
+            background: #fff;
+        }
+
+        .history-item-main {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .history-item-model {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--dark);
+            margin-bottom: 2px;
+        }
+
+        .history-item-preview {
+            font-size: 12px;
+            color: var(--gray-text);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .history-item-stats {
+            font-size: 12px;
+            color: var(--gray-text);
+            text-align: right;
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .history-item-stats strong {
+            color: var(--dark);
+            font-weight: 600;
+        }
+
+        .history-empty {
+            text-align: center;
+            padding: 20px;
+            color: var(--gray-text);
+            font-size: 13px;
+        }
+
         .tokens-list {
             display: flex;
             flex-wrap: wrap;
@@ -753,10 +998,11 @@
                 <div class="upload-area">
                     <label style="display:block; font-size:12px; font-weight:500; color:var(--gray-text); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.5px;">Загрузка файлов</label>
                     <input type="file" id="file-input" accept=".txt,text/*,application/json" multiple hidden>
-                    <button type="button" class="btn-upload" id="upload-btn" title="Загрузить текст из файла">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-                        Select Files
-                    </button>
+                    <div class="dropzone" id="dropzone" title="Перетащите файлы сюда или кликните для выбора">
+                        <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <div class="dropzone-text">Перетащите файлы сюда или <span class="dropzone-link">выберите</span></div>
+                        <div class="dropzone-hint">.txt, .json и другие текстовые файлы</div>
+                    </div>
                 </div>
 
                 <button id="tokenize-btn" class="btn-calculate" disabled>
@@ -768,6 +1014,14 @@
                 </button>
 
                 <div id="error" class="error-msg"></div>
+
+                <div class="history-section" id="history-section" style="display:none">
+                    <div class="history-header">
+                        <span class="history-title">История запросов</span>
+                        <button type="button" class="btn-clear-history" id="clear-history-btn">Очистить</button>
+                    </div>
+                    <div class="history-list" id="history-list"></div>
+                </div>
             </div>
 
             <!-- Right: Token Count Results -->
@@ -791,9 +1045,10 @@
                         <div class="summary-card blue">
                             <div class="summary-card-title">
                                 <span class="summary-card-title-text">Token Count</span>
-                                <div class="summary-card-title-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="12" y2="14"/></svg>
-                                </div>
+                                <button type="button" class="btn-copy" id="copy-count-btn" title="Скопировать число токенов">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                    <span>Copy</span>
+                                </button>
                             </div>
                             <div class="summary-card-value" id="count">0</div>
                             <div class="summary-card-unit" id="count-label">TOKENS</div>
@@ -815,6 +1070,8 @@
                         <dd id="detail-model">—</dd>
                         <dt>Версия модели</dt>
                         <dd id="detail-version">—</dd>
+                        <dt>Контекст модели</dt>
+                        <dd id="detail-context">—</dd>
                         <dt>Тарификация</dt>
                         <dd id="detail-price">—</dd>
                         <dt>Characters</dt>
@@ -824,7 +1081,10 @@
                     </dl>
 
                     <div class="tokenized-text-label">Текст с подсветкой токенов</div>
-                    <div class="tokenized-text" id="tokenized-text"></div>
+                    <div class="tokenized-text-wrapper" id="tokenized-text-wrapper">
+                        <div class="tokenized-text" id="tokenized-text"></div>
+                    </div>
+                    <button type="button" class="btn-toggle-expand" id="toggle-expand-btn">Развернуть</button>
 
                     <details class="tokens-list-details" id="tokens-list-details">
                         <summary id="tokens-list-summary">Список токенов</summary>
@@ -832,7 +1092,13 @@
                     </details>
 
                     <details class="raw-json-details" id="raw-json-details">
-                        <summary>Сырой ответ JSON</summary>
+                        <summary>
+                            <span>Сырой ответ JSON</span>
+                            <button type="button" class="btn-copy" id="copy-json-btn" title="Скопировать JSON">
+                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                                <span>Copy</span>
+                            </button>
+                        </summary>
                         <div class="raw-json-body">
                             <pre id="raw-json-pre"></pre>
                         </div>
@@ -864,13 +1130,12 @@
         const costEl = document.getElementById('cost-el');
         const detailModel = document.getElementById('detail-model');
         const detailVersion = document.getElementById('detail-version');
+        const detailContext = document.getElementById('detail-context');
         const detailPrice = document.getElementById('detail-price');
         const detailChars = document.getElementById('detail-chars');
         const detailSize = document.getElementById('detail-size');
 
         let modelsData = [];
-        let lastTokenCount = null;
-        let lastPricePer1000 = null;
         let lastCost = null;
         const listEl = document.getElementById('tokens-list');
         const tokenizedTextEl = document.getElementById('tokenized-text');
@@ -904,16 +1169,16 @@
         textArea.addEventListener('input', updateCharCount);
 
         const fileInput = document.getElementById('file-input');
-        const uploadBtn = document.getElementById('upload-btn');
-        uploadBtn.addEventListener('click', () => fileInput.click());
-        fileInput.addEventListener('change', async () => {
-            const files = Array.from(fileInput.files || []);
-            if (files.length === 0) return;
+        const dropzone = document.getElementById('dropzone');
+        const textareaWrapper = document.querySelector('.textarea-wrapper');
+
+        async function loadFilesIntoTextarea(files) {
+            const list = Array.from(files || []);
+            if (list.length === 0) return;
             const parts = [];
-            for (const file of files) {
+            for (const file of list) {
                 try {
-                    const text = await file.text();
-                    parts.push(text);
+                    parts.push(await file.text());
                 } catch (e) {
                     showError('Не удалось прочитать файл: ' + file.name);
                     return;
@@ -922,20 +1187,63 @@
             hideError();
             textArea.value = parts.join('\n\n');
             updateCharCount();
+        }
+
+        dropzone.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', async () => {
+            await loadFilesIntoTextarea(fileInput.files);
             fileInput.value = '';
         });
+
+        function attachDropHandlers(el) {
+            let depth = 0;
+            el.addEventListener('dragenter', e => {
+                if (!e.dataTransfer?.types.includes('Files')) return;
+                e.preventDefault();
+                depth++;
+                el.classList.add('drag-over');
+            });
+            el.addEventListener('dragover', e => {
+                if (!e.dataTransfer?.types.includes('Files')) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+            });
+            el.addEventListener('dragleave', e => {
+                if (!e.dataTransfer?.types.includes('Files')) return;
+                depth = Math.max(0, depth - 1);
+                if (depth === 0) el.classList.remove('drag-over');
+            });
+            el.addEventListener('drop', async e => {
+                if (!e.dataTransfer?.files?.length) return;
+                e.preventDefault();
+                depth = 0;
+                el.classList.remove('drag-over');
+                await loadFilesIntoTextarea(e.dataTransfer.files);
+            });
+        }
+
+        attachDropHandlers(textareaWrapper);
+        attachDropHandlers(dropzone);
 
         function pricePer1M() {
             return document.getElementById('price-per-1m-cb').checked;
         }
 
-        function formatPriceBadge(pricePer1000) {
-            if (pricePer1000 == null) return '—';
-            if (pricePer1M()) {
-                const per1M = pricePer1000 * 1000;
-                return Math.round(per1M) + ' ₽/1M';
-            }
-            return pricePer1000.toFixed(2).replace('.', ',') + ' ₽/1K';
+        function formatContext(context) {
+            const n = parseInt(context, 10);
+            if (!Number.isFinite(n) || n <= 0) return '';
+            if (n >= 1000) return Math.round(n / 1024) + 'K';
+            return String(n);
+        }
+
+        function formatModelBadge(model) {
+            if (!model) return '—';
+            const ctx = formatContext(model.context);
+            const price = model.price_per_1000 == null ? '—' :
+                pricePer1M()
+                    ? Math.round(model.price_per_1000 * 1000) + ' ₽/1M'
+                    : model.price_per_1000.toFixed(2).replace('.', ',') + ' ₽/1K';
+            return ctx ? `${ctx} · ${price}` : price;
         }
 
         function formatPriceDetail(pricePer1000, per1M) {
@@ -971,7 +1279,7 @@
             const id = modelSelect.value;
             const m = modelsData.find(x => x.id === id);
             modelTriggerText.textContent = m ? m.name : '—';
-            modelTriggerBadge.textContent = m ? formatPriceBadge(m.price_per_1000) : '—';
+            modelTriggerBadge.textContent = formatModelBadge(m);
             modelPanel.querySelectorAll('.model-dropdown-option').forEach(el => {
                 el.classList.toggle('selected', el.dataset.id === id);
             });
@@ -997,7 +1305,7 @@
                     div.className = 'model-dropdown-option' + (m.id === defaultId ? ' selected' : '');
                     div.dataset.id = m.id;
                     div.setAttribute('role', 'option');
-                    div.innerHTML = '<span class="model-dropdown-option-text">' + escapeHtml(m.name) + '</span><span class="model-dropdown-option-badge">' + escapeHtml(formatPriceBadge(m.price_per_1000)) + '</span><svg class="model-dropdown-option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
+                    div.innerHTML = '<span class="model-dropdown-option-text">' + escapeHtml(m.name) + '</span><span class="model-dropdown-option-badge">' + escapeHtml(formatModelBadge(m)) + '</span><svg class="model-dropdown-option-check" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>';
                     div.addEventListener('click', () => {
                         modelSelect.value = m.id;
                         updateModelTrigger();
@@ -1024,7 +1332,7 @@
             modelPanel.querySelectorAll('.model-dropdown-option').forEach(el => {
                 const m = modelsData.find(x => x.id === el.dataset.id);
                 const badge = el.querySelector('.model-dropdown-option-badge');
-                if (badge) badge.textContent = m ? formatPriceBadge(m.price_per_1000) : '—';
+                if (badge) badge.textContent = formatModelBadge(m);
             });
             updateDetailPriceFromModel();
         });
@@ -1093,14 +1401,10 @@
                 const modelInfo = modelsData.find(m => m.id === modelId);
                 const pricePer1000 = modelInfo?.price_per_1000;
                 if (pricePer1000 != null) {
-                    lastTokenCount = data.token_count;
-                    lastPricePer1000 = pricePer1000;
                     lastCost = (data.token_count / 1000) * pricePer1000;
                     costEl.textContent = formatCostDisplay(lastCost);
                     detailPrice.textContent = formatPriceDetail(pricePer1000, pricePer1M());
                 } else {
-                    lastTokenCount = null;
-                    lastPricePer1000 = null;
                     lastCost = null;
                     costEl.textContent = '—';
                     detailPrice.textContent = '—';
@@ -1108,6 +1412,9 @@
 
                 detailModel.textContent = modelName;
                 detailVersion.textContent = data.model_version || '—';
+                detailContext.textContent = modelInfo?.context
+                    ? `${Number(modelInfo.context).toLocaleString('ru-RU')} токенов`
+                    : '—';
                 detailChars.textContent = text.length;
                 detailSize.textContent = (new Blob([text]).size / 1024).toFixed(2) + ' KB';
 
@@ -1122,6 +1429,15 @@
                 });
                 tokenizedTextEl.innerHTML = tokenSpans.join('');
 
+                const wrapper = document.getElementById('tokenized-text-wrapper');
+                const toggleBtn = document.getElementById('toggle-expand-btn');
+                wrapper.classList.remove('expanded');
+                toggleBtn.textContent = 'Развернуть';
+                requestAnimationFrame(() => {
+                    const fits = tokenizedTextEl.scrollHeight <= tokenizedTextEl.clientHeight + 1;
+                    wrapper.classList.toggle('fits', fits);
+                });
+
                 listEl.innerHTML = data.tokens.map(t => {
                     const cls = t.special ? 'token-chip special' : 'token-chip';
                     const display = t.text.replace(/ /g, '\u00B7').replace(/\n/g, '\u21B5');
@@ -1133,6 +1449,17 @@
 
                 document.getElementById('raw-json-pre').textContent = JSON.stringify(data, null, 2);
                 document.getElementById('raw-json-details').open = false;
+
+                addHistoryEntry({
+                    ts: Date.now(),
+                    modelId: modelId,
+                    modelName: modelName,
+                    tokenCount: data.token_count,
+                    chars: text.length,
+                    cost: lastCost,
+                    preview: text.slice(0, 80).replace(/\s+/g, ' '),
+                    text: text,
+                });
             } catch (e) {
                 showError(e.message);
             } finally {
@@ -1143,6 +1470,40 @@
 
         btn.addEventListener('click', tokenize);
 
+        async function copyToClipboard(text, btnEl) {
+            try {
+                await navigator.clipboard.writeText(text);
+                const labelEl = btnEl.querySelector('span');
+                const original = labelEl.textContent;
+                btnEl.classList.add('copied');
+                labelEl.textContent = 'Copied';
+                setTimeout(() => {
+                    btnEl.classList.remove('copied');
+                    labelEl.textContent = original;
+                }, 1500);
+            } catch {
+                showError('Не удалось скопировать в буфер обмена');
+            }
+        }
+
+        document.getElementById('toggle-expand-btn').addEventListener('click', () => {
+            const wrapper = document.getElementById('tokenized-text-wrapper');
+            const btn = document.getElementById('toggle-expand-btn');
+            const expanded = wrapper.classList.toggle('expanded');
+            btn.textContent = expanded ? 'Свернуть' : 'Развернуть';
+        });
+
+        document.getElementById('copy-count-btn').addEventListener('click', e => {
+            e.preventDefault();
+            copyToClipboard(countEl.textContent, e.currentTarget);
+        });
+
+        document.getElementById('copy-json-btn').addEventListener('click', e => {
+            e.preventDefault();
+            e.stopPropagation();
+            copyToClipboard(document.getElementById('raw-json-pre').textContent, e.currentTarget);
+        });
+
         textArea.addEventListener('keydown', e => {
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 e.preventDefault();
@@ -1150,8 +1511,69 @@
             }
         });
 
+        const HISTORY_LIMIT = 10;
+        const historySection = document.getElementById('history-section');
+        const historyListEl = document.getElementById('history-list');
+        let historyItems = [];
+
+        function formatRelativeTime(ts) {
+            const diff = Math.floor((Date.now() - ts) / 1000);
+            if (diff < 60) return 'только что';
+            if (diff < 3600) return Math.floor(diff / 60) + ' мин назад';
+            if (diff < 86400) return Math.floor(diff / 3600) + ' ч назад';
+            return Math.floor(diff / 86400) + ' дн назад';
+        }
+
+        function renderHistory() {
+            if (historyItems.length === 0) {
+                historySection.style.display = 'none';
+                return;
+            }
+            historySection.style.display = 'block';
+            historyListEl.innerHTML = historyItems.map((it, idx) => {
+                const costStr = it.cost == null ? '—' : it.cost.toFixed(3).replace('.', ',') + ' ₽';
+                return `<div class="history-item" data-idx="${idx}" title="Кликните, чтобы восстановить текст">
+                    <div class="history-item-main">
+                        <div class="history-item-model">${escapeHtml(it.modelName)}</div>
+                        <div class="history-item-preview">${escapeHtml(it.preview)}</div>
+                    </div>
+                    <div class="history-item-stats">
+                        <strong>${it.tokenCount}</strong> токенов · ${costStr}<br>
+                        <span>${formatRelativeTime(it.ts)}</span>
+                    </div>
+                </div>`;
+            }).join('');
+            historyListEl.querySelectorAll('.history-item').forEach(el => {
+                el.addEventListener('click', () => {
+                    const idx = parseInt(el.dataset.idx, 10);
+                    const item = historyItems[idx];
+                    if (!item) return;
+                    if (item.modelId && modelsData.find(m => m.id === item.modelId)) {
+                        modelSelect.value = item.modelId;
+                        updateModelTrigger();
+                    }
+                    if (item.text != null) {
+                        textArea.value = item.text;
+                        updateCharCount();
+                    }
+                });
+            });
+        }
+
+        function addHistoryEntry(entry) {
+            historyItems.unshift(entry);
+            historyItems = historyItems.slice(0, HISTORY_LIMIT);
+            renderHistory();
+        }
+
+        document.getElementById('clear-history-btn').addEventListener('click', () => {
+            historyItems = [];
+            renderHistory();
+        });
+
         loadModels();
         updateCharCount();
+        renderHistory();
     </script>
 </body>
 </html>
