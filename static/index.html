@@ -301,6 +301,40 @@
             color: #9CA3AF;
         }
 
+        .textarea-wrapper {
+            position: relative;
+        }
+
+        .btn-clear-text {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 22px;
+            height: 22px;
+            border: none;
+            border-radius: 50%;
+            background: #E5E7EB;
+            color: #6B7280;
+            font-size: 14px;
+            line-height: 1;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s, color 0.15s;
+            padding: 0;
+            flex-shrink: 0;
+        }
+
+        .btn-clear-text:hover {
+            background: #D1D5DB;
+            color: var(--dark);
+        }
+
+        .btn-clear-text.visible {
+            display: flex;
+        }
+
         .char-count {
             font-size: 13px;
             color: var(--gray-text);
@@ -707,7 +741,12 @@
 
                 <div class="form-group">
                     <label for="text">Текст</label>
-                    <textarea id="text" placeholder="Введите текст для токенизации..."></textarea>
+                    <div class="textarea-wrapper">
+                        <textarea id="text">Yandex AI Studio - это платформа Yandex Cloud для создания AI-приложений и AI-агентов на базе больших генеративных моделей. AI Studio предоставляет все необходимое для всех этапов от экспериментов и прототипирования до промышленного внедрения разработок.</textarea>
+                        <button type="button" class="btn-clear-text" id="clear-text-btn" title="Очистить текст">
+                            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="1" y1="1" x2="9" y2="9"/><line x1="9" y1="1" x2="1" y2="9"/></svg>
+                        </button>
+                    </div>
                     <div class="char-count" id="char-count">0 символов</div>
                 </div>
 
@@ -848,10 +887,19 @@
             return 'токенов';
         }
 
+        const clearTextBtn = document.getElementById('clear-text-btn');
+
         function updateCharCount() {
             const n = textArea.value.length;
             charCountEl.textContent = n + ' ' + (n === 1 ? 'символ' : n < 5 ? 'символа' : 'символов');
+            clearTextBtn.classList.toggle('visible', n > 0);
         }
+
+        clearTextBtn.addEventListener('click', () => {
+            textArea.value = '';
+            updateCharCount();
+            textArea.focus();
+        });
 
         textArea.addEventListener('input', updateCharCount);
 

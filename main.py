@@ -14,10 +14,15 @@ load_dotenv()
 YANDEX_API_KEY = os.getenv("YANDEX_API_KEY", "")
 YANDEX_FOLDER_ID = os.getenv("YANDEX_FOLDER_ID", "")
 
-TOKENIZE_URL = "https://ai.api.cloud.yandex.net/foundationModels/v1/tokenize"
+TOKENIZE_URL = "https://llm.api.cloud.yandex.net/foundationModels/v1/tokenize"
 
 # Модели, для которых токенизация выполняется локально (Hugging Face), т.к. Yandex API не отдаёт токенизатор
 LOCAL_TOKENIZER_MODELS = {"qwen3-235b-a22b-fp8", "gpt-oss-120b", "gpt-oss-20b", "deepseek-v32"}
+
+# Модели, которые не поддерживают токенизацию через API — используем токенизатор-прокси
+TOKENIZER_PROXY: dict[str, str] = {
+    "aliceai-llm": "yandexgpt/latest",  # Alice AI основана на YandexGPT
+}
 LOCAL_TOKENIZER_HF_MODEL: dict[str, str] = {
     "qwen3-235b-a22b-fp8": "Qwen/Qwen3-0.6B",
     "gpt-oss-120b": "openai/gpt-oss-120b",
@@ -141,7 +146,8 @@ async def tokenize(req: TokenizeRequest):
             model_version=model_version,
         )
 
-    model_uri = f"gpt://{YANDEX_FOLDER_ID}/{req.model}"
+    api_model = TOKENIZER_PROXY.get(req.model, req.model)
+    model_uri = f"gpt://{YANDEX_FOLDER_ID}/{api_model}"
 
     async with httpx.AsyncClient(timeout=30) as client:
         try:
